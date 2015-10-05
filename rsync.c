@@ -36,31 +36,8 @@
 
 #ifdef __CYGWIN__
 #include <w32api/windows.h>
+#include <sys/cygwin.h>
 #endif
-
-
-/* This has been taken from rsync:lib/compat.c */
-
-/**
- * Like strncpy but does not 0 fill the buffer and always null
- * terminates.
- *
- * @param bufsize is the size of the destination buffer.
- *
- * @return index of the terminating byte.
- **/
-static size_t strlcpy(char *d, const char *s, size_t bufsize)
-{
-        size_t len = strlen(s);
-        size_t ret = len;
-        if (bufsize > 0) {
-                if (len >= bufsize)
-                        len = bufsize-1;
-                memcpy(d, s, len);
-                d[len] = 0;
-        }
-        return ret;
-}
 
 /* splits filepath at the last '/', if any, like so:
  *	dirname		basename	filepath
@@ -734,7 +711,7 @@ int csync_rs_patch(const char *filename)
 		char winfilename[MAX_PATH];
 		HANDLE winfh;
 
-		cygwin_conv_to_win32_path(prefixsubst(filename), winfilename);
+		cygwin_conv_path(CCP_POSIX_TO_WIN_A, prefixsubst(filename), winfilename, MAX_PATH);
 
 		winfh = CreateFile(TEXT(winfilename),
 				GENERIC_WRITE,          // open for writing

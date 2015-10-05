@@ -34,6 +34,9 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#ifdef __CYGWIN__
+#include <ctype.h>
+#endif
 
 #define DB_SCHEMA_VERSION 0
 

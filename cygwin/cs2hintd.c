@@ -23,9 +23,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sqlite.h>
+#include <sqlite3.h>
 
-static sqlite *db = 0;
+static sqlite3 *db = 0;
 
 extern const char *url_encode(const char * in);
 
@@ -40,7 +40,7 @@ void sql(const char *fmt, ...)
 	va_end(ap);
 
 	while (1) {
-		rc = sqlite_exec(db, sql, 0, 0, 0);
+		rc = sqlite3_exec(db, sql, 0, 0, 0);
 		if ( rc != SQLITE_BUSY ) break;
 		if (busyc++ > 60) {
 			fprintf(stderr, "** Database busy for long time [%d secs]: %s\n", busyc, sql);
@@ -50,7 +50,7 @@ void sql(const char *fmt, ...)
 
 	if ( rc != SQLITE_OK ) {
 		fprintf(stderr, "** Database Error %d in '%s'!\n", rc, sql);
-		sqlite_exec(db, "COMMIT TRANSACTION", 0, 0, 0);
+		sqlite3_exec(db, "COMMIT TRANSACTION", 0, 0, 0);
 		exit(1);
 	}
 
@@ -68,8 +68,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	db = sqlite_open(argv[1], 0, 0);
-	if (!db) {
+	if (sqlite3_open(argv[1], &db)) {
 		fprintf(stderr, "** Can't open database file: %s\n", argv[1]);
 		exit(1);
 	}

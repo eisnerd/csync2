@@ -26,10 +26,10 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <sqlite.h>
+#include <sqlite3.h>
 #include <time.h>
 
-static sqlite *db = 0;
+static sqlite3 *db = 0;
 static int db_busyc = 0;
 static int last_busyc_warn = 0;
 
@@ -456,17 +456,16 @@ restart_entry_point:
 			goto panic_restart_everything;
 		}
 
-		db = sqlite_open(dbname, 0, 0);
-		if (!db) {
+		if (sqlite3_open(dbname, &db)) {
 			printf("CS2MONITOR: Can't open database file! Restarting CS2MONITOR..\n");
 			goto panic_restart_everything;
 		}
 
-		rc = sqlite_exec(db, "BEGIN TRANSACTION", 0, 0, 0);
+		rc = sqlite3_exec(db, "BEGIN TRANSACTION", 0, 0, 0);
 
 		if ( rc != SQLITE_BUSY && rc != SQLITE_OK ) {
 			printf("CS2MONITOR: Got database error %d on DB check! Restarting CS2MONITOR..\n", rc);
-			sqlite_close(db);
+			sqlite3_close(db);
 			goto panic_restart_everything;
 		}
 
@@ -474,20 +473,20 @@ restart_entry_point:
 			db_busyc++;
 			if (db_busyc > 600) {
 				printf("CS2MONITOR: Database is busy for 600 seconds! Restarting CS2MONITOR..\n");
-				sqlite_close(db);
+				sqlite3_close(db);
 				goto panic_restart_everything;
 			}
 			if (db_busyc > 300 || db_busyc > last_busyc_warn + 10) {
 				printf("CS2MONITOR: DB is busy for %d seconds now (Monitor restart at 600 seconds).\n", db_busyc);
-				sqlite_close(db);
+				sqlite3_close(db);
 				last_busyc_warn = db_busyc;
 			}
 		} else {
-			sqlite_exec(db, "COMMIT TRANSACTION", 0, 0, 0);
+			sqlite3_exec(db, "COMMIT TRANSACTION", 0, 0, 0);
 			db_busyc = last_busyc_warn = 0;
 		}
 
-		sqlite_close(db);
+		sqlite3_close(db);
 	}
 
 panic_restart_everything:

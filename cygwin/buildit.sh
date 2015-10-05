@@ -20,12 +20,8 @@
 
 TRGDIR=/cygdrive/c/csync2
 
-if ! [ -f sqlite-2.8.16.tar.gz ]; then
-	wget http://www.sqlite.org/sqlite-2.8.16.tar.gz -O sqlite-2.8.16.tar.gz
-fi
-
 if ! [ -f librsync-0.9.7.tar.gz ]; then
-	wget http://mesh.dl.sourceforge.net/sourceforge/librsync/librsync-0.9.7.tar.gz -O librsync-0.9.7.tar.gz
+	wget http://librsync.sourcefrog.net/librsync-0.9.7.tar.gz -O librsync-0.9.7.tar.gz
 fi
 
 cd ..
@@ -33,14 +29,12 @@ mkdir -p $TRGDIR
 rm -f $TRGDIR/*.exe $TRGDIR/*.dll
 
 if ! [ -f config.h ]; then
-	./configure \
+	./autogen.sh \
 		--with-librsync-source=cygwin/librsync-0.9.7.tar.gz \
-		--with-libsqlite-source=cygwin/sqlite-2.8.16.tar.gz \
 		--disable-gnutls --sysconfdir=$TRGDIR
 fi
 
 make private_librsync
-make private_libsqlite
 make CFLAGS='-DREAL_DBDIR=\".\"'
 
 ignore_dlls="KERNEL32.dll|USER32.dll|GDI32.dll|mscoree.dll"
@@ -57,11 +51,11 @@ copy_dlls() {
 }
 
 cp -v csync2.exe $TRGDIR/csync2.exe
-cp -v sqlite-2.8.16/sqlite.exe $TRGDIR/sqlite.exe
+cp -v /bin/sqlite3.exe $TRGDIR/sqlite.exe
 cp -v /bin/killall.exe /bin/cp.exe /bin/ls.exe /bin/wc.exe $TRGDIR/
 cp -v /bin/find.exe /bin/xargs.exe /bin/rsync.exe $TRGDIR/
 cp -v /bin/grep.exe /bin/gawk.exe /bin/wget.exe $TRGDIR/
-cp -v /bin/rxvt.exe /bin/unzip.exe /bin/libW11.dll $TRGDIR/
+cp -v /bin/unzip.exe $TRGDIR/
 cp -v /bin/diff.exe /bin/date.exe /bin/tail.exe $TRGDIR/
 cp -v /bin/head.exe /bin/sleep.exe /bin/rm.exe $TRGDIR/
 cp -v /bin/bash.exe $TRGDIR/sh.exe
@@ -69,11 +63,11 @@ cp -v /bin/bash.exe $TRGDIR/sh.exe
 copy_dlls $TRGDIR/*.exe $TRGDIR/*.dll
 
 cd cygwin
-PATH="$PATH:/cygdrive/c/WINNT/Microsoft.NET/Framework/v1.0.3705"
+PATH="$PATH:$(cygpath "$WINDIR")/Microsoft.NET/Framework/v4.0.30319/"
 csc /nologo cs2hintd_fseh.cs
 
-gcc -Wall cs2monitor.c -o cs2monitor.exe -DTRGDIR="\"$TRGDIR"\" -{I,L}../sqlite-2.8.16 -lprivatesqlite
-gcc -Wall ../urlencode.o cs2hintd.c -o cs2hintd.exe -{I,L}../sqlite-2.8.16 -lprivatesqlite
+gcc -Wall cs2monitor.c -o cs2monitor.exe -DTRGDIR="\"$TRGDIR"\" -lsqlite3
+gcc -Wall ../urlencode.o cs2hintd.c -o cs2hintd.exe -lsqlite3
 
 cp -v readme_pkg.txt $TRGDIR/README.txt
 cp -v ../README $TRGDIR/README-csync2.txt
