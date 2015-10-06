@@ -56,6 +56,7 @@ static void *dl_handle;
 
 static void db_sqlite3_dlopen(void)
 {
+#ifndef __CYGWIN__
 	csync_debug(2, "Opening shared library libsqlite3.so\n");
 
 	dl_handle = dlopen("libsqlite3.so", RTLD_LAZY);
@@ -66,6 +67,7 @@ static void db_sqlite3_dlopen(void)
 		     dlerror());
 	}
 	csync_debug(2, "Reading symbols from shared library libsqlite3.so\n");
+#endif
 
 	LOOKUP_SYMBOL(dl_handle, sqlite3_open);
 	LOOKUP_SYMBOL(dl_handle, sqlite3_close);
